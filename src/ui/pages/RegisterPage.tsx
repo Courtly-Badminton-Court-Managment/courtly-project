@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import SplitPage from "@/ui/components/SplitPage";
-import RegisterHero from "@/ui/components/RegisterHero";
+import AuthHero from "@/ui/components/AuthHero";
 import Field from "@/ui/components/Field";
 import PrimaryButton from "@/ui/components/PrimaryButton";
 import TermsModal from "@/ui/components/modal/TermsModal";
@@ -179,5 +179,5 @@ export default function RegisterPage() {
     </>
   );
 
-  return <SplitPage left={<RegisterHero />} right={Right} />;
+  return <SplitPage heroPosition="right" heroSide={<AuthHero side="left"/>} formSide={Right} />;
 }

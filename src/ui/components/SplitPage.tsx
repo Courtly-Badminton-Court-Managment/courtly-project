@@ -1,22 +1,34 @@
-import { ReactNode } from "react";
-
 export default function SplitPage({
-  left,
-  right,
+  formSide,
+  heroSide,
+  heroPosition = "right", // 💡 NEW: "left" or "right"
 }: {
-  left: ReactNode;
-  right: ReactNode;
+  formSide: React.ReactNode;
+  heroSide: React.ReactNode;
+  heroPosition?: "left" | "right";
 }) {
+  const isHeroLeft = heroPosition === "left";
+
   return (
-    <main className="min-h-dvh grid grid-cols-1 lg:grid-cols-2 overflow-hidden bg-white">
-      {/* LEFT */}
-      <aside className="relative hidden lg:block">
-        {left}
+    <main className="min-h-dvh grid grid-cols-1 lg:grid-cols-2 bg-white overflow-hidden">
+      {/* HERO */}
+      <aside
+        className={`relative hidden lg:block ${
+          isHeroLeft ? "order-1" : "order-2"
+        }`}
+      >
+        {heroSide}
       </aside>
 
-      {/* RIGHT */}
-      <section className="flex items-center justify-center">
-        <div className="w-full max-w-3xl px-20 py-10">{right}</div>
+      {/* FORM */}
+      <section
+        className={`flex items-center justify-center ${
+          isHeroLeft ? "order-2" : "order-1"
+        }`}
+      >
+        <div className="w-full max-w-3xl px-6 sm:px-10 lg:px-20 py-10">
+          {formSide}
+        </div>
       </section>
     </main>
   );
