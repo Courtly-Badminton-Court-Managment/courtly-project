@@ -1,120 +1,183 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
+import AuthSplit from "@/ui/components/AuthSplit";
+import RegisterHero from "@/ui/components/RegisterHero";
+import Field from "@/ui/components/Field";
+import PrimaryButton from "@/ui/components/PrimaryButton";
+import TermsModal from "@/ui/components/modal/TermsModal";
+import { z } from "zod";
+import { useRef, useState } from "react";
+
+/** ── Zod schema ─────────────────────────────────────────────────────────── */
+const schema = z
+  .object({
+    username: z.string().min(1, "Required"),
+    email: z.string().email("Invalid email"),
+    firstname: z.string().min(1, "Required"),
+    lastname: z.string().min(1, "Required"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters long")
+      .regex(/[a-z]/, "Must include a lowercase letter")
+      .regex(/[A-Z]/, "Must include an uppercase letter")
+      .regex(/[0-9]/, "Must include a number")
+      .regex(/[^A-Za-z0-9]/, "Must include a special character"),
+    confirm: z.string().min(1, "Required"),
+    accept: z.boolean().refine((val) => val === true, {
+      message: "Please accept terms",
+    }),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords do not match",
+    path: ["confirm"],
+  });
 
 export default function RegisterPage() {
-  return (
-    <main className="min-h-dvh grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
-      {/* LEFT: Brand panel */}
-      <aside className="relative hidden lg:block">
-        {/* gradient bg + big rounded right edge */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#cfe3d7] via-[#efe7db] to-[#cfe3d7] rounded-r-[48px]" />
-        <div className="relative z-10 flex h-full items-center justify-center px-10">
-          <div className="max-w-[600px] w-full">
-            <div className="relative mx-auto aspect-[4/3] w-full">
-              {/* โลโก้หลัก */}
-              <Image
-                src="/brand/corutly-main-logo-tagline.png"
-                alt="Courtly"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          </div>
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const acceptRef = useRef<HTMLInputElement>(null);
+
+  async function onSubmit(formData: FormData) {
+    setErrors({});
+    const payload = Object.fromEntries(formData) as Record<string, any>;
+    payload.accept = payload.accept === "on";
+
+    const parsed = schema.safeParse(payload);
+    if (!parsed.success) {
+      const map: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0]?.toString() || "root";
+        map[key] = issue.message;
+      }
+      setErrors(map);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // TODO: call API register จริง
+      alert("Sign up success ✅\n" + JSON.stringify(parsed.data, null, 2));
+    } catch (e: any) {
+      setErrors({ root: e?.message ?? "Something went wrong" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const Right = (
+    <>
+      <h2 className="text-4xl md:text-4xl font-extrabold mb-5">
+        <span className="text-pine">Game on!</span>{" "}
+        <span className="text-walnut">Create an Account.</span>
+      </h2>
+
+      <form action={onSubmit} className="space-y-3">
+        <Field
+          label="Username"
+          name="username"
+          placeholder="e.g. smashtiger88"
+          error={errors.username}
+        />
+        <Field
+          type="email"
+          label="Email"
+          name="email"
+          placeholder="e.g. player@email.com"
+          error={errors.email}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Firstname"
+            name="firstname"
+            placeholder="e.g. Tanawat"
+            error={errors.firstname}
+          />
+          <Field
+            label="Lastname"
+            name="lastname"
+            placeholder="e.g. Srisawat"
+            error={errors.lastname}
+          />
         </div>
-      </aside>
 
-      {/* RIGHT: Form panel */}
-      <section className="flex items-center justify-center bg-white">
-        <div className="w-full max-w-3xl px-6 py-10">
-          {/* บนมือถือโชว์โลโก้เล็ก */}
-          <div className="mb-6 flex items-center gap-3 lg:hidden">
-            <Image src="/brand/courtly-logo-no-text.png" alt="Courtly" width={40} height={40} />
-            <div>
-              <p className="text-2xl font-extrabold tracking-wide text-[#5f574f]">COURTLY</p>
-              <p className="text-xs text-[#5f574f]/70 -mt-1">Easy Court — Easy Life</p>
-            </div>
-          </div>
+        <Field
+          type="password"
+          label="Password"
+          name="password"
+          placeholder="Must be 8+ characters, include symbols"
+          error={errors.password}
+        />
+        <Field
+          type="password"
+          label="Confirm password"
+          name="confirm"
+          placeholder="Re-enter your password"
+          error={errors.confirm}
+        />
 
-          <h1 className="text-4xl font-extrabold text-[#5f574f]">GET STARTED!</h1>
-          <p className="mt-1 text-sm text-[#5f574f]/70">You’re all set in a minute.</p>
-
-          <div className="mt-6 rounded-3xl border border-[#E2E2E2] bg-white p-10 shadow-[0_8px_30px_rgba(0,0,0,.06)]">
-            <form className="space-y-4">
-              {/* First / Last */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Firstname" placeholder="Firstname" />
-                <Field label="Lastname" placeholder="Lastname" />
-              </div>
-
-              {/* Email */}
-              <Field type="email" label="Email" placeholder="you@example.com" />
-
-              {/* Username */}
-              <Field label="Username" placeholder="Username" />
-
-              {/* Password / Confirm */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field type="password" label="Password" placeholder="At least 6 characters" />
-                <Field type="password" label="Confirm password" placeholder="Confirm password" />
-              </div>
-
-              {/* Terms */}
-              <label className="mt-1 flex items-center gap-3 text-sm text-[#5f574f]">
-                <input type="checkbox" className="h-4 w-4 rounded border-[#E2E2E2] text-[#2E8762] focus:ring-[#2E8762]" />
-                <span>
-                  I agree to the{" "}
-                  <a href="#" className="font-semibold text-[#2E8762] underline underline-offset-2">
-                    Terms &amp; Conditions
-                  </a>
-                </span>
-              </label>
-
-              {/* CTA */}
+        {/* Terms */}
+        <div className="relative">
+          <label className="mt-8 flex items-center gap-2 text-sm text-onyx">
+            <input
+              ref={acceptRef}
+              type="checkbox"
+              name="accept"
+              className={`h-4 w-4 rounded border-platinum text-sea focus:ring-sea ${
+                errors.accept ? "ring-2 ring-red-400" : ""
+              }`}
+            />
+            <span>
+              I agree to the{" "}
               <button
-                type="submit"
-                className="mt-2 w-full rounded-2xl bg-[#356D6C] py-3 text-lg font-bold text-white
-                           shadow-[0_8px_0_0_rgba(0,0,0,.12)] hover:translate-y-[1px]
-                           hover:shadow-[0_7px_0_0_rgba(0,0,0,.12)]
-                           active:translate-y-[2px] active:shadow-[0_6px_0_0_rgba(0,0,0,.12)] transition"
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="font-semibold text-sea underline underline-offset-2"
               >
-                Sign up
+                Terms &amp; Conditions
               </button>
-
-              <p className="pt-2 text-center text-sm text-[#5f574f]/80">
-                Already have an account?{" "}
-                <Link href="/login" className="font-semibold text-[#2E8762] underline">
-                  Sign In
-                </Link>
-              </p>
-            </form>
-          </div>
+            </span>
+          </label>
+          {errors.accept && (
+            <span className="pointer-events-none absolute -bottom-4 right-0 text-xs text-red-600">
+              {errors.accept}
+            </span>
+          )}
         </div>
-      </section>
-    </main>
-  );
-}
 
-/** ---- small field component with soft bottom shadow ---- **/
-function Field({
-  label,
-  placeholder,
-  type = "text",
-}: {
-  label: string;
-  placeholder: string;
-  type?: "text" | "email" | "password";
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-[#5f574f]">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-[#E2E2E2] px-3 py-2 outline-none
-                   shadow-[0_5px_0_0_rgba(0,0,0,.12)] focus:shadow-none
-                   focus:ring-2 focus:ring-[#75B2A0] placeholder:text-[#5f574f]/40"
+        {errors.root && (
+          <p className="text-sm text-red-600">{errors.root}</p>
+        )}
+
+        <div className="mt-8">
+          <PrimaryButton type="submit" disabled={loading}>
+            {loading ? "Please wait…" : "Sign up Now!"}
+          </PrimaryButton>
+        </div>
+
+        <p className="pt-2 text-center text-sm text-walnut">
+          Already have an account?{" "}
+          <Link href="/login" className="font-semibold text-sea underline">
+            Sign In
+          </Link>
+        </p>
+      </form>
+
+      <TermsModal
+        open={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={() => {
+          if (acceptRef.current) acceptRef.current.checked = true;
+          setErrors((e) => {
+            const { accept, ...rest } = e;
+            return rest;
+          });
+        }}
       />
-    </div>
+    </>
   );
+
+  return <AuthSplit left={<RegisterHero />} right={Right} />;
 }
