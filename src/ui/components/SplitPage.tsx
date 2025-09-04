@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export default function AuthSplit({
+export default function SplitPage({
   left,
   right,
 }: {

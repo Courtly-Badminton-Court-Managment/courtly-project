@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import AuthSplit from "@/ui/components/AuthSplit";
+import SplitPage from "@/ui/components/SplitPage";
 import RegisterHero from "@/ui/components/RegisterHero";
 import Field from "@/ui/components/Field";
 import PrimaryButton from "@/ui/components/PrimaryButton";
@@ -179,5 +179,5 @@ export default function RegisterPage() {
     </>
   );
 
-  return <AuthSplit left={<RegisterHero />} right={Right} />;
+  return <SplitPage left={<RegisterHero />} right={Right} />;
 }
